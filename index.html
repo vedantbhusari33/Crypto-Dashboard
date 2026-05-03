@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS — Crypto Intelligence Platform</title>
+<title>CryptoVision — Crypto Intelligence Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -1585,6 +1585,17 @@
     background: var(--border);
   }
 
+  /* ===== NUMBER FORMATTING STYLES ===== */
+  .num-positive { color: var(--green) !important; font-weight: 600; }
+  .num-negative { color: var(--red) !important; font-weight: 600; }
+  .num-mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
+  @keyframes numFlash {
+    0%   { opacity: 0.3; transform: scale(0.97); }
+    60%  { opacity: 1;   transform: scale(1.02); }
+    100% { opacity: 1;   transform: scale(1); }
+  }
+  .num-flash { animation: numFlash 0.45s cubic-bezier(0.22,1,0.36,1); }
+
   /* Notif panel */
   .notif-panel {
     position: absolute;
@@ -1632,8 +1643,8 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-icon">N</div>
-      <span class="logo-text">NEXUS</span>
+      <div class="logo-icon">CV</div>
+      <span class="logo-text">CryptoVision</span>
       <span class="logo-live">LIVE</span>
     </div>
     <nav class="sidebar-nav">
@@ -2411,7 +2422,7 @@
         <div class="ai-insight" style="margin-bottom:20px">
           <div class="ai-head">
             <div class="ai-pulse"></div>
-            <span class="ai-label">NEXUS AI Engine · v4.2</span>
+            <span class="ai-label">CryptoVision AI Engine · v4.2</span>
             <span class="trend-indicator bullish" style="margin-left:auto"><span class="trend-arrow">↑</span> Bullish Bias</span>
           </div>
           <p class="ai-text">AI models are detecting <strong>accumulation patterns</strong> in BTC and ETH on-chain. Whale wallet clustering suggests a <strong>72% probability of a breakout</strong> above $70K within 14 days. Sentiment NLP across 48 sources rates the market as <strong>Moderately Bullish (score: 0.68)</strong>. Layer 2 activity is anomalously high — indicating institutional DeFi positioning.</p>
@@ -2492,7 +2503,7 @@
   <div class="modal-box">
     <div class="modal-close" onclick="closeSignup()">✕</div>
     <div class="modal-logo">N</div>
-    <div class="modal-title">Join NEXUS</div>
+    <div class="modal-title">Join CryptoVision</div>
     <div class="modal-sub">Start tracking your crypto portfolio — free forever</div>
     <div class="modal-field">
       <label>Full Name</label>
@@ -2527,6 +2538,31 @@
 </div>
 
 <script>
+// ===================== NUMBER FORMATTING UTILS =====================
+function formatPrice(n) {
+  if (n === undefined || n === null) return '—';
+  if (n >= 1000) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 1)    return '$' + n.toFixed(2);
+  return '$' + n.toFixed(6);
+}
+function formatUSD(n) {
+  if (n === undefined || n === null) return '—';
+  return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatPct(n, showArrow = true) {
+  if (n === undefined || n === null) return '—';
+  const abs = Math.abs(n).toFixed(2);
+  const arrow = showArrow ? (n >= 0 ? '↑' : '↓') : (n >= 0 ? '+' : '-');
+  return arrow + abs + '%';
+}
+function pctClass(n) { return n >= 0 ? 'num-positive' : 'num-negative'; }
+function flashEl(el) {
+  if (!el) return;
+  el.classList.remove('num-flash');
+  void el.offsetWidth;
+  el.classList.add('num-flash');
+}
+
 // ===================== MOCK DATA =====================
 const COINS = {
   BTC: { name:'Bitcoin', sym:'BTC', color:'#f7931a', emoji:'₿', price:67241, change24h:2.4, mktCap:'$1.31T', vol:'$28.4B', cat:'Layer 1' },
@@ -2672,11 +2708,11 @@ function buildTicker() {
   const repeat = [...items,...items];
   repeat.forEach(c => {
     const up = c.change24h >= 0;
-    const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : c.price > 1 ? '$'+c.price.toFixed(2) : '$'+c.price.toFixed(6);
+    const fmt = formatPrice(c.price);
     html += `<div class="ticker-item">
       <span class="ticker-symbol">${c.sym}</span>
       <span class="ticker-price">${fmt}</span>
-      <span class="ticker-change ${up?'up':'down'}">${up?'↑':'↓'}${Math.abs(c.change24h)}%</span>
+      <span class="ticker-change ${up?'up':'down'}">${formatPct(c.change24h)}</span>
     </div><div class="ticker-dot"></div>`;
   });
   document.getElementById('ticker').innerHTML = html;
@@ -2773,7 +2809,7 @@ function renderMainChart() {
           callbacks: {
             label: ctx => {
               const v = ctx.parsed.y;
-              return ' ' + (v > 100 ? '$'+v.toLocaleString() : '$'+v.toFixed(4));
+              return ' ' + formatPrice(v);
             }
           }
         }},
@@ -2923,7 +2959,7 @@ function buildPortfolioRing() {
       </div>
       <div class="p-bar-wrap"><div class="p-bar" style="width:${barW}%;background:${c.color}"></div></div>
       <div class="p-pct">${p.pct}%</div>
-      <div class="badge ${up?'up':'down'}" style="margin-left:8px">${up?'+':'-'}$${Math.abs(p.pl).toLocaleString()}</div>
+      <div class="badge ${up?'up':'down'}" style="margin-left:8px">${up?'+':'-'}${formatUSD(Math.abs(p.pl))}</div>
     </div>`;
   }).join('');
 }
@@ -2940,7 +2976,7 @@ function buildWatchlist() {
   const el = document.getElementById('watchlist-items');
   el.innerHTML = data.slice(0,8).map(c => {
     const up = c.change24h >= 0;
-    const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : c.price > 1 ? '$'+c.price.toFixed(2) : '$'+c.price.toFixed(6);
+    const fmt = formatPrice(c.price);
     const spark = genPriceSeries(c.price, 7, 0.01);
     const max = Math.max(...spark), min = Math.min(...spark);
     const bars = spark.map(v => {
@@ -2956,7 +2992,7 @@ function buildWatchlist() {
         </div>
       </div>
       <div style="font-size:12px;font-weight:600;font-family:var(--font-mono)">${fmt}</div>
-      <div class="${up?'badge up':'badge down'}">${up?'↑':'↓'}${Math.abs(c.change24h)}%</div>
+      <div class="badge ${up?'up':'down'}">${formatPct(c.change24h)}</div>
       <div class="spark-mini">${bars}</div>
     </div>`;
   }).join('');
@@ -3040,12 +3076,12 @@ function renderComparison() {
 
   function card(c) {
     const up = c.change24h >= 0;
-    const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : '$'+c.price.toFixed(2);
+    const fmt = formatPrice(c.price);
     return `<div class="compare-card">
       <div style="font-size:11px;color:var(--text2);font-family:var(--font-mono)">${c.sym}</div>
       <div class="compare-price" style="color:${c.color}">${fmt}</div>
       <div class="compare-change ${up?'':''}">
-        <span class="badge ${up?'up':'down'}">${up?'↑':'↓'}${Math.abs(c.change24h)}%</span>
+        <span class="badge ${up?'up':'down'}">${formatPct(c.change24h)}</span>
       </div>
       <div class="compare-stats">
         <div class="compare-stat">Mkt Cap: <span>${c.mktCap}</span></div>
@@ -3070,14 +3106,15 @@ function simulatePrices() {
   const btc = COINS.BTC;
   const btcEl = document.getElementById('stat-btc');
   if (btcEl) {
-    btcEl.textContent = '$'+btc.price.toLocaleString();
+    btcEl.textContent = formatPrice(btc.price);
     btcEl.style.color = btc.change24h >= 0 ? 'var(--green)' : 'var(--red)';
+    flashEl(btcEl);
   }
   const btcBadge = document.getElementById('btc-badge');
   if (btcBadge) {
     const up = btc.change24h >= 0;
     btcBadge.className = 'badge ' + (up ? 'up' : 'down');
-    btcBadge.textContent = (up?'↑':'↓')+Math.abs(btc.change24h)+'%';
+    btcBadge.textContent = formatPct(btc.change24h);
   }
 
   // Update ticker
@@ -3222,7 +3259,7 @@ function handleSignupSubmit() {
   // Update avatar initials
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   document.querySelector('.avatar').textContent = initials;
-  showToast('🎉', `Welcome, ${name.split(' ')[0]}!`, 'Your NEXUS account is ready — enjoy the platform');
+  showToast('🎉', `Welcome, ${name.split(' ')[0]}!`, 'Your CryptoVision account is ready — enjoy the platform');
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('signupModal').classList.contains('open')) closeSignup();
@@ -3352,11 +3389,11 @@ function runScenario() {
   const cls = isBull ? 'bull' : 'bear';
   header.className = `scenario-impact-header ${cls}`;
   document.getElementById('scenario-new-val').className = `impact-value ${cls}`;
-  document.getElementById('scenario-new-val').textContent = '$' + Math.round(totalAfter).toLocaleString();
+  document.getElementById('scenario-new-val').textContent = formatUSD(Math.round(totalAfter));
   document.getElementById('scenario-delta').className = `impact-change ${cls}`;
-  document.getElementById('scenario-delta').textContent = (totalPct >= 0 ? '+' : '') + totalPct.toFixed(1) + '%';
+  document.getElementById('scenario-delta').textContent = (totalPct >= 0 ? '+' : '') + totalPct.toFixed(2) + '%';
   document.getElementById('scenario-pl').className = `impact-value ${cls}`;
-  document.getElementById('scenario-pl').textContent = (totalDelta >= 0 ? '+$' : '-$') + Math.abs(Math.round(totalDelta)).toLocaleString();
+  document.getElementById('scenario-pl').textContent = (totalDelta >= 0 ? '+' : '-') + formatUSD(Math.abs(Math.round(totalDelta)));
 
   // Asset grid
   const coinColors = { BTC:'#f7931a', ETH:'#627eea', SOL:'#9945ff', LINK:'#2a5ada', FET:'#1cbcae', DOGE:'#c2a633' };
@@ -3367,9 +3404,9 @@ function runScenario() {
     const up = r.after >= r.before;
     const cardCls = up ? 'bull' : 'bear';
     const barPct = Math.min(100, Math.max(10, (r.after / totalAfter) * 100));
-    const afterFmt = r.after > 1000 ? '$' + Math.round(r.after).toLocaleString() : '$' + r.after.toFixed(0);
-    const beforeFmt = r.before > 1000 ? '$' + Math.round(r.before).toLocaleString() : '$' + r.before.toFixed(0);
-    const effectStr = (r.pct >= 0 ? '+' : '') + r.pct.toFixed(1) + '%';
+    const afterFmt = formatPrice(r.after);
+    const beforeFmt = formatPrice(r.before);
+    const effectStr = (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2) + '%';
 
     return `<div class="scenario-asset-card ${cardCls}">
       <div class="sa-header">
@@ -3445,14 +3482,14 @@ function updateTradeSummary() {
   const fee = amount * 0.001;
   const total = amount + fee;
 
-  document.getElementById('ts-price').textContent = '$' + (price > 1000 ? price.toLocaleString() : price > 1 ? price.toFixed(2) : price.toFixed(6));
+  document.getElementById('ts-price').textContent = formatPrice(price);
   document.getElementById('ts-qty').textContent = qty.toFixed(qty < 0.001 ? 8 : qty < 1 ? 6 : 4) + ' ' + sym;
-  document.getElementById('ts-fee').textContent = '$' + fee.toFixed(2);
-  document.getElementById('ts-total').textContent = (tradeType === 'buy' ? '$' : '-$') + total.toFixed(2);
+  document.getElementById('ts-fee').textContent = formatUSD(fee);
+  document.getElementById('ts-total').textContent = (tradeType === 'buy' ? '' : '-') + formatUSD(total);
 
   const btn = document.getElementById('execute-trade-btn');
   btn.className = `execute-trade-btn ${tradeType}`;
-  btn.textContent = (tradeType === 'buy' ? '↑ BUY' : '↓ SELL') + ` $${amount.toFixed(0)} of ${sym}`;
+  btn.textContent = (tradeType === 'buy' ? '↑ BUY' : '↓ SELL') + ` ${formatUSD(amount)} of ${sym}`;
 }
 
 function executeTrade() {
@@ -3466,14 +3503,14 @@ function executeTrade() {
   if (amount <= 0) { showToast('⚠️', 'Invalid Amount', 'Enter a positive dollar amount'); return; }
 
   if (tradeType === 'buy') {
-    if (total > cashBalance) { showToast('⚠️', 'Insufficient Funds', `Need $${total.toFixed(2)}, have $${cashBalance.toFixed(2)}`); return; }
+    if (total > cashBalance) { showToast('⚠️', 'Insufficient Funds', `Need ${formatUSD(total)}, have ${formatUSD(cashBalance)}`); return; }
     cashBalance -= total;
     tradePortfolio[sym] = tradePortfolio[sym] || { qty: 0, avgPrice: price };
     const oldQty = tradePortfolio[sym].qty;
     const oldAvg = tradePortfolio[sym].avgPrice;
     tradePortfolio[sym].avgPrice = (oldQty * oldAvg + qty * price) / (oldQty + qty);
     tradePortfolio[sym].qty += qty;
-    showToast('✅', `Bought ${qty.toFixed(4)} ${sym}`, `$${amount.toFixed(2)} · Fee: $${fee.toFixed(2)}`);
+    showToast('✅', `Bought ${qty.toFixed(4)} ${sym}`, `${formatUSD(amount)} · Fee: ${formatUSD(fee)}`);
   } else {
     const holding = tradePortfolio[sym];
     if (!holding || holding.qty < qty) {
@@ -3482,7 +3519,7 @@ function executeTrade() {
     }
     holding.qty -= qty;
     cashBalance += amount - fee;
-    showToast('📉', `Sold ${qty.toFixed(4)} ${sym}`, `+$${(amount - fee).toFixed(2)} credited`);
+    showToast('📉', `Sold ${qty.toFixed(4)} ${sym}`, `+${formatUSD(amount - fee)} credited`);
   }
 
   // Update balance display
@@ -3494,7 +3531,7 @@ function executeTrade() {
   }, 0) + cashBalance;
   const statEl = document.getElementById('stat-portfolio');
   if (statEl) {
-    statEl.textContent = '$' + Math.round(portfolioTotal).toLocaleString();
+    statEl.textContent = formatUSD(Math.round(portfolioTotal));
     statEl.classList.remove('stat-flash');
     void statEl.offsetWidth;
     statEl.classList.add('stat-flash');
@@ -3558,7 +3595,7 @@ function renderMarketsTable() {
   if (mktCatFilter !== 'All') coins = coins.filter(c => c.cat === mktCatFilter);
   el.innerHTML = coins.map((c, i) => {
     const up = c.change24h >= 0;
-    const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : c.price > 1 ? '$'+c.price.toFixed(2) : '$'+c.price.toFixed(6);
+    const fmt = formatPrice(c.price);
     const spark = genPriceSeries(c.price, 7, 0.01);
     const max = Math.max(...spark), min = Math.min(...spark);
     const bars = spark.map(v => {
@@ -3572,7 +3609,7 @@ function renderMarketsTable() {
         <div><div style="font-weight:600">${c.name}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${c.sym}</div></div>
       </div>
       <div style="font-family:var(--font-mono);font-weight:600">${fmt}</div>
-      <div class="badge ${up?'up':'down'}">${up?'↑':'↓'}${Math.abs(c.change24h)}%</div>
+      <div class="badge ${up?'up':'down'}">${formatPct(c.change24h)}</div>
       <div style="color:var(--text2)">${c.mktCap}</div>
       <div class="spark-mini" style="display:flex;align-items:flex-end;gap:1.5px;height:24px">${bars}</div>
     </div>`;
@@ -3583,11 +3620,11 @@ function renderGainersLosers() {
   const gainers = all.filter(c => c.change24h > 0).slice(0, 5);
   const losers = [...all].reverse().filter(c => c.change24h < 0).slice(0, 5);
   function row(c, cls) {
-    const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : c.price > 1 ? '$'+c.price.toFixed(2) : '$'+c.price.toFixed(6);
+    const fmt = formatPrice(c.price);
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="width:28px;height:28px;border-radius:50%;background:${c.color}22;display:flex;align-items:center;justify-content:center;font-size:12px;color:${c.color};font-weight:700">${c.emoji}</div>
       <div style="flex:1"><div style="font-size:12px;font-weight:600">${c.sym}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${fmt}</div></div>
-      <span class="badge ${cls}">${cls==='up'?'↑':'↓'}${Math.abs(c.change24h)}%</span>
+      <span class="badge ${cls}">${formatPct(c.change24h)}</span>
     </div>`;
   }
   const gEl = document.getElementById('markets-gainers');
@@ -3640,15 +3677,15 @@ function renderPortfolioPage() {
       const p = PORTFOLIO.find(x => x.sym === h.sym);
       const c = COINS[h.sym];
       const up = p.pl >= 0;
-      const fmt = c.price > 1000 ? '$'+c.price.toLocaleString() : c.price > 1 ? '$'+c.price.toFixed(2) : '$'+c.price.toFixed(6);
+      const fmt = formatPrice(c.price);
       return `<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;font-size:12px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="width:26px;height:26px;border-radius:50%;background:${c.color}22;display:flex;align-items:center;justify-content:center;font-size:11px;color:${c.color};font-weight:700">${c.emoji}</div>
           <div><div style="font-weight:600">${c.name}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${h.avgCost} avg</div></div>
         </div>
         <div style="font-family:var(--font-mono)">${h.qty} ${h.sym}</div>
-        <div style="font-family:var(--font-mono);font-weight:600">$${p.value.toLocaleString()}</div>
-        <span class="badge ${up?'up':'down'}">${up?'+':'-'}$${Math.abs(p.pl).toLocaleString()}</span>
+        <div style="font-family:var(--font-mono);font-weight:600">${formatUSD(p.value)}</div>
+        <span class="badge ${up?'up':'down'}">${up?'+':'-'}${formatUSD(Math.abs(p.pl))}</span>
       </div>`;
     }).join('');
   }
@@ -3687,14 +3724,14 @@ function updateTradeSummary2() {
   const qty = price > 0 ? amount / price : 0;
   const fee = amount * 0.001;
   const total = amount + fee;
-  const fmt = p => p > 1000 ? '$'+p.toLocaleString() : p > 1 ? '$'+p.toFixed(2) : '$'+p.toFixed(6);
+  const fmt = p => formatPrice(p);
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('ts-price2', fmt(price));
   set('ts-qty2', qty.toFixed(qty<0.001?8:qty<1?6:4)+' '+sym);
-  set('ts-fee2', '$'+fee.toFixed(2));
-  set('ts-total2', (tradeType2==='buy'?'$':'-$')+total.toFixed(2));
+  set('ts-fee2', formatUSD(fee));
+  set('ts-total2', (tradeType2==='buy'?'':'-')+formatUSD(total));
   const btn = document.getElementById('execute-trade-btn2');
-  if (btn) { btn.className='execute-trade-btn '+tradeType2; btn.textContent=(tradeType2==='buy'?'↑ BUY':'↓ SELL')+` $${amount.toFixed(0)} of ${sym}`; }
+  if (btn) { btn.className='execute-trade-btn '+tradeType2; btn.textContent=(tradeType2==='buy'?'↑ BUY':'↓ SELL')+` ${formatUSD(amount)} of ${sym}`; }
   set('cash-balance-trading', '$'+cashBalance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}));
 }
 function executeTrade2() {
@@ -3707,18 +3744,18 @@ function executeTrade2() {
   const total = amount+fee;
   if (amount<=0){showToast('⚠️','Invalid Amount','Enter a positive dollar amount');return;}
   if (tradeType2==='buy'){
-    if(total>cashBalance){showToast('⚠️','Insufficient Funds',`Need $${total.toFixed(2)}, have $${cashBalance.toFixed(2)}`);return;}
+    if(total>cashBalance){showToast('⚠️','Insufficient Funds',`Need ${formatUSD(total)}, have ${formatUSD(cashBalance)}`);return;}
     cashBalance-=total;
     tradePortfolio[sym]=tradePortfolio[sym]||{qty:0,avgPrice:price};
     const oQ=tradePortfolio[sym].qty,oA=tradePortfolio[sym].avgPrice;
     tradePortfolio[sym].avgPrice=(oQ*oA+qty*price)/(oQ+qty);
     tradePortfolio[sym].qty+=qty;
-    showToast('✅',`Bought ${qty.toFixed(4)} ${sym}`,`$${amount.toFixed(2)} · Fee: $${fee.toFixed(2)}`);
+    showToast('✅',`Bought ${qty.toFixed(4)} ${sym}`,`${formatUSD(amount)} · Fee: ${formatUSD(fee)}`);
   } else {
     const h=tradePortfolio[sym];
     if(!h||h.qty<qty){showToast('⚠️','Insufficient Holdings',`You have ${h?h.qty.toFixed(4):0} ${sym}`);return;}
     h.qty-=qty; cashBalance+=amount-fee;
-    showToast('📉',`Sold ${qty.toFixed(4)} ${sym}`,`+$${(amount-fee).toFixed(2)} credited`);
+    showToast('📉',`Sold ${qty.toFixed(4)} ${sym}`,`+${formatUSD(amount-fee)} credited`);
   }
   updateTradeSummary2();
   buildOrderBook();
@@ -3779,7 +3816,7 @@ function buildWatchlistPage() {
   });
   el.innerHTML = data.map(c=>{
     const up=c.change24h>=0;
-    const fmt=c.price>1000?'$'+c.price.toLocaleString():c.price>1?'$'+c.price.toFixed(2):'$'+c.price.toFixed(6);
+    const fmt=formatPrice(c.price);
     const spark=genPriceSeries(c.price,7,0.01);
     const max=Math.max(...spark),min=Math.min(...spark);
     const bars=spark.map(v=>{const h=Math.round(4+(v-min)/(max-min+0.001)*20);return `<div class="sm-bar" style="height:${h}px;width:3px;background:${up?'var(--green)':'var(--red)'};opacity:0.7;border-radius:1px"></div>`;}).join('');
@@ -3789,7 +3826,7 @@ function buildWatchlistPage() {
         <div><div style="font-weight:600">${c.name}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${c.sym}</div></div>
       </div>
       <div style="font-family:var(--font-mono);font-weight:600">${fmt}</div>
-      <div class="badge ${up?'up':'down'}">${up?'↑':'↓'}${Math.abs(c.change24h)}%</div>
+      <div class="badge ${up?'up':'down'}">${formatPct(c.change24h)}</div>
       <div style="color:var(--text2);font-size:11px">${c.mktCap}</div>
       <div style="display:flex;align-items:flex-end;gap:1.5px;height:24px">${bars}</div>
     </div>`;
